@@ -1,0 +1,605 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Mırmır C# Köməkçisi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#EAF0F7; --panel:#FFFFFF; --panel-2:#F4F7FB; --ink:#0B1422; --muted:#44536B;
+  --line:#C6D1E0; --accent:#C2580C; --accent-fill:#E8741E; --accent-ink:#FFFFFF;
+  --user:#1D4ED8; --user-bg:#DCE7FF; --danger:#B42318; --ok:#157F3B;
+  --code-bg:#0E1626; --code-ink:#E6EDF7; --shadow:0 10px 30px rgba(20,40,80,.12);
+  --s:1;
+  --f-display:"Baloo 2","Nunito",system-ui,sans-serif;
+  --f-body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",Consolas,"Cascadia Mono","Courier New",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0A101B; --panel:#141D2D; --panel-2:#1A2539; --ink:#F3F6FB; --muted:#A8B5C9;
+    --line:#2B3A52; --accent:#FF9E4F; --accent-fill:#F07F25; --accent-ink:#1A0D02;
+    --user:#9DB8FF; --user-bg:#1E2E55; --danger:#FF8A80; --ok:#6EE7A0;
+    --code-bg:#070C16; --shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0A101B; --panel:#141D2D; --panel-2:#1A2539; --ink:#F3F6FB; --muted:#A8B5C9;
+  --line:#2B3A52; --accent:#FF9E4F; --accent-fill:#F07F25; --accent-ink:#1A0D02;
+  --user:#9DB8FF; --user-bg:#1E2E55; --danger:#FF8A80; --ok:#6EE7A0;
+  --code-bg:#070C16; --shadow:0 10px 30px rgba(0,0,0,.45);
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:calc(20px * var(--s));line-height:1.45}
+*{box-sizing:border-box}
+button,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent-fill);outline-offset:2px}
+
+.app{height:100%;display:grid;grid-template-rows:auto 1fr auto;padding-inline:clamp(16px,2vw,32px);padding-block:12px;gap:12px}
+
+/* Header */
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:12px;margin-right:auto}
+.brand h1{font-family:var(--f-display);font-weight:800;font-size:2em;line-height:1;margin:0;color:var(--accent)}
+.brand span{color:var(--muted);font-weight:700;font-size:.9em}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:2px solid var(--line);background:var(--panel);border-radius:12px;padding:.35em .75em;font-weight:800;font-size:.8em;cursor:pointer;display:inline-flex;align-items:center;gap:.4em;min-height:44px}
+.btn:hover{border-color:var(--accent-fill)}
+.btn[aria-pressed="false"]{color:var(--muted)}
+.btn svg{width:1.2em;height:1.2em}
+select.btn{padding-right:.4em;max-width:16em}
+
+/* Main */
+.main{display:grid;grid-template-columns:minmax(260px,.85fr) 1.5fr;gap:clamp(12px,2vw,28px);min-height:0}
+.stage{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;position:relative}
+.stage svg.cat{width:100%;max-width:520px;height:auto;max-height:calc(100% - 3em);overflow:visible}
+.status{font-family:var(--f-display);font-weight:800;font-size:1.1em;color:var(--muted);display:flex;align-items:center;gap:.5em}
+.status i{width:.7em;height:.7em;border-radius:50%;background:var(--ok);display:inline-block}
+.state-thinking .status i{background:var(--accent-fill)}
+.state-talking .status i{background:var(--user)}
+
+.chat{background:var(--panel);border:2px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow-y:auto;padding:clamp(14px,2vw,26px);display:flex;flex-direction:column;gap:18px;min-height:0;scroll-behavior:smooth}
+.msg-user{align-self:flex-end;max-width:85%;background:var(--user-bg);color:var(--ink);border-radius:18px 18px 4px 18px;padding:.5em .9em;font-weight:700;font-size:.95em;border:2px solid transparent}
+.msg-user b{color:var(--user);font-size:.75em;display:block;letter-spacing:.04em;text-transform:uppercase}
+.bubble{position:relative;align-self:flex-start;max-width:100%;background:var(--panel-2);border:3px solid var(--accent-fill);border-radius:24px;padding:.8em 1.1em;font-size:1.25em;line-height:1.5}
+.bubble::before{content:"";position:absolute;left:-18px;top:26px;border:14px solid transparent;border-right:18px solid var(--accent-fill);border-left:0}
+.bubble::after{content:"";position:absolute;left:-12px;top:29px;border:11px solid transparent;border-right:14px solid var(--panel-2);border-left:0}
+.bubble.old{font-size:1em;border-color:var(--line);opacity:.9}
+.bubble.old::before{border-right-color:var(--line)}
+.bubble p{margin:.2em 0 .5em}
+.bubble p:last-child{margin-bottom:0}
+.bubble ul,.bubble ol{margin:.2em 0 .5em;padding-left:1.3em}
+.bubble code.inl{font-family:var(--f-mono);font-size:.88em;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:.05em .3em}
+.bubble strong{color:var(--accent)}
+.bubble .err{color:var(--danger);font-weight:800}
+.bubble .dim{color:var(--muted);font-style:italic}
+
+.code{position:relative;margin:.5em 0 .7em;border-radius:14px;background:var(--code-bg);overflow:hidden}
+.code .lang{position:absolute;top:0;left:0;background:#1E2A40;color:#AFC2DE;font:600 .6em var(--f-mono);padding:.25em .7em;border-bottom-right-radius:10px;letter-spacing:.06em}
+.code .copy{position:absolute;top:.35em;right:.35em;background:#1E2A40;border:1px solid #33445F;color:#DCE6F5;border-radius:8px;font:700 .6em var(--f-body);padding:.3em .7em;cursor:pointer}
+.code pre{margin:0;padding:1.8em 1em 1em;overflow-x:auto;font-family:var(--f-mono);font-size:.82em;line-height:1.55;color:var(--code-ink);tab-size:4}
+.token.comment{color:#8C9DB5;font-style:italic}
+.token.keyword{color:#82B4FF;font-weight:600}
+.token.string,.token.char{color:#F6C978}
+.token.number,.token.boolean{color:#F7A1A1}
+.token.class-name,.token.namespace{color:#6FE3C1}
+.token.function{color:#FFD98A}
+.token.operator,.token.punctuation{color:#C5D0E2}
+.token.interpolation-punctuation,.token.punctuation.interpolation-punctuation{color:#FF9E4F}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px dashed var(--line);background:transparent;border-radius:999px;padding:.3em .8em;font-weight:700;font-size:.8em;cursor:pointer;color:var(--muted)}
+.chip:hover{border-color:var(--accent-fill);color:var(--ink)}
+
+/* Composer */
+.composer{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:end}
+.composer textarea{width:100%;resize:none;min-height:2.8em;max-height:6em;border:3px solid var(--line);border-radius:18px;background:var(--panel);padding:.55em .9em;font-size:1.1em;font-weight:700}
+.composer textarea:focus{border-color:var(--accent-fill);outline:none}
+.round{width:3.2em;height:3.2em;border-radius:50%;border:3px solid var(--line);background:var(--panel);display:grid;place-items:center;cursor:pointer}
+.round svg{width:1.5em;height:1.5em}
+.round.listening{background:var(--danger);border-color:var(--danger);color:#fff;animation:pulse 1.2s ease-in-out infinite}
+.round:disabled{opacity:.45;cursor:not-allowed}
+.send{height:3.2em;border-radius:18px;border:0;background:var(--accent-fill);color:var(--accent-ink);font-weight:800;font-size:1em;padding:0 1.2em;cursor:pointer;display:inline-flex;gap:.4em;align-items:center}
+.send.stop{background:var(--danger);color:#fff}
+.send:disabled{opacity:.5;cursor:not-allowed}
+.hint{grid-column:1/-1;color:var(--muted);font-size:.72em;font-weight:700;display:flex;gap:1.2em;flex-wrap:wrap}
+kbd{font-family:var(--f-mono);border:1px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:0 .35em;background:var(--panel)}
+@keyframes pulse{50%{box-shadow:0 0 0 10px rgba(180,35,24,.18)}}
+
+.toast{position:fixed;left:50%;bottom:calc(110px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.6em 1.1em;border-radius:14px;font-weight:800;font-size:.85em;max-width:min(90vw,700px);text-align:center;z-index:5}
+
+/* Cat animation */
+.cat .tail{transform-box:fill-box;transform-origin:0% 100%;animation:wag 1.8s ease-in-out infinite}
+.cat .eye{transform-box:fill-box;transform-origin:center;animation:blink 4.2s infinite}
+.cat .eye.r{animation-delay:.03s}
+.cat .bodyg{transform-box:fill-box;transform-origin:50% 100%;animation:breathe 3.4s ease-in-out infinite}
+.cat .mouth-open{opacity:0;transform-box:fill-box;transform-origin:50% 0%}
+.cat .dots{opacity:0;transition:opacity .25s}
+.cat .dots circle{transform-box:fill-box;transform-origin:center}
+.state-thinking .cat .dots{opacity:1}
+.state-thinking .cat .dots circle{animation:dot 1.1s ease-in-out infinite}
+.state-thinking .cat .dots circle:nth-child(2){animation-delay:.18s}
+.state-thinking .cat .dots circle:nth-child(3){animation-delay:.36s}
+.state-thinking .cat .pupil{transform:translate(4px,-6px)}
+.cat .pupil{transition:transform .3s}
+.state-thinking .cat .headg{transform:rotate(-4deg)}
+.cat .headg{transform-box:fill-box;transform-origin:50% 90%;transition:transform .4s}
+.state-talking .cat .mouth-open{opacity:1;animation:talk .28s ease-in-out infinite alternate}
+.state-talking .cat .mouth-closed{opacity:0}
+.state-talking .cat .headg{animation:bob .56s ease-in-out infinite alternate}
+.state-talking .cat .tail{animation-duration:1s}
+@keyframes wag{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(14deg)}}
+@keyframes blink{0%,91%,100%{transform:scaleY(1)}94%{transform:scaleY(.08)}97%{transform:scaleY(1)}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.015,1.025)}}
+@keyframes dot{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-12px);opacity:1}}
+@keyframes talk{from{transform:scaleY(.25)}to{transform:scaleY(1)}}
+@keyframes bob{from{transform:rotate(-1.5deg) translateY(0)}to{transform:rotate(1.5deg) translateY(-3px)}}
+@media (prefers-reduced-motion: reduce){
+  .cat .bodyg,.cat .tail{animation:none}
+  .state-talking .cat .headg{animation:none}
+  .chat{scroll-behavior:auto}
+}
+
+@media (max-width:820px){
+  .app{height:auto;min-height:100%}
+  .main{grid-template-columns:1fr}
+  .stage svg.cat{max-width:260px}
+  .chat{max-height:60vh}
+  .brand h1{font-size:1.6em}
+}
+</style>
+
+<div class="app state-idle" id="app">
+  <header class="top">
+    <div class="brand"><h1 id="catName">Mırmır</h1><span>C# dərs köməkçisi</span></div>
+    <div class="tools">
+      <button class="btn" id="voiceBtn" aria-pressed="true" title="Səsli oxunu yandır / söndür">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path id="waveA" d="M15.5 8.5a5 5 0 0 1 0 7"/><path id="waveB" d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+        <span id="voiceLbl">Səs: açıq</span>
+      </button>
+      <select class="btn" id="voiceSel" aria-label="Səs seçimi" title="Səs seçimi" hidden></select>
+      <select class="btn" id="tierSel" aria-label="Cavab rejimi" title="Sürətli: tez cavab · Dərin: daha çox düşünür">
+        <option value="quick">Sürətli</option>
+        <option value="default">Dərin</option>
+      </select>
+      <button class="btn" id="smaller" title="Şrifti kiçilt" aria-label="Şrifti kiçilt">A−</button>
+      <button class="btn" id="bigger" title="Şrifti böyüt" aria-label="Şrifti böyüt">A+</button>
+      <button class="btn" id="newTopic" title="Söhbət tarixçəsini təmizlə">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Yeni mövzu
+      </button>
+      <button class="btn" id="fsBtn" title="Tam ekran">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Tam ekran
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="stage" aria-label="Köməkçi personaj">
+      <svg class="cat" viewBox="0 -40 400 480" role="img" aria-labelledby="catTitle">
+        <title id="catTitle">Cizgi pişik</title>
+        <!-- tail -->
+        <g class="tail"><path d="M285 380 C 345 380, 370 330, 352 280 C 342 252, 368 236, 380 250" fill="none" stroke="#3B2414" stroke-width="34" stroke-linecap="round"/><path d="M285 380 C 345 380, 370 330, 352 280 C 342 252, 368 236, 380 250" fill="none" stroke="#F59E3A" stroke-width="26" stroke-linecap="round"/><path d="M356 262 C 360 252, 370 246, 380 250" fill="none" stroke="#D2721C" stroke-width="26" stroke-linecap="round"/></g>
+        <!-- body -->
+        <g class="bodyg">
+          <ellipse cx="200" cy="345" rx="112" ry="88" fill="#F59E3A" stroke="#3B2414" stroke-width="4"/>
+          <ellipse cx="200" cy="360" rx="62" ry="62" fill="#FFE3BF"/>
+          <path d="M100 330 q 18 6 26 -8 M300 330 q -18 6 -26 -8" stroke="#D2721C" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <ellipse cx="160" cy="424" rx="34" ry="18" fill="#FFE3BF" stroke="#3B2414" stroke-width="4"/>
+          <ellipse cx="240" cy="424" rx="34" ry="18" fill="#FFE3BF" stroke="#3B2414" stroke-width="4"/>
+          <path d="M152 416 v12 M168 416 v12 M232 416 v12 M248 416 v12" stroke="#C9A27A" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <!-- head -->
+        <g class="headg">
+          <polygon points="88,150 104,34 176,104" fill="#F59E3A" stroke="#3B2414" stroke-width="4" stroke-linejoin="round"/>
+          <polygon points="312,150 296,34 224,104" fill="#F59E3A" stroke="#3B2414" stroke-width="4" stroke-linejoin="round"/>
+          <polygon points="106,128 114,66 156,106" fill="#FFB3C1"/>
+          <polygon points="294,128 286,66 244,106" fill="#FFB3C1"/>
+          <ellipse cx="200" cy="190" rx="132" ry="110" fill="#F59E3A" stroke="#3B2414" stroke-width="4"/>
+          <path d="M200 86 v26 M176 90 l6 22 M224 90 l-6 22" stroke="#D2721C" stroke-width="8" stroke-linecap="round"/>
+          <ellipse cx="200" cy="248" rx="62" ry="44" fill="#FFE3BF"/>
+          <!-- eyes -->
+          <g class="eye l"><ellipse cx="148" cy="186" rx="29" ry="34" fill="#fff" stroke="#3B2414" stroke-width="4"/><g class="pupil"><ellipse cx="152" cy="192" rx="15" ry="21" fill="#1F2A1A"/><ellipse cx="152" cy="192" rx="9" ry="15" fill="#2F5D3A"/><circle cx="158" cy="182" r="6" fill="#fff"/></g></g>
+          <g class="eye r"><ellipse cx="252" cy="186" rx="29" ry="34" fill="#fff" stroke="#3B2414" stroke-width="4"/><g class="pupil"><ellipse cx="248" cy="192" rx="15" ry="21" fill="#1F2A1A"/><ellipse cx="248" cy="192" rx="9" ry="15" fill="#2F5D3A"/><circle cx="254" cy="182" r="6" fill="#fff"/></g></g>
+          <circle cx="110" cy="236" r="16" fill="#FF8FA3" opacity=".55"/>
+          <circle cx="290" cy="236" r="16" fill="#FF8FA3" opacity=".55"/>
+          <path d="M190 226 h20 l-10 11 z" fill="#E86A86" stroke="#3B2414" stroke-width="3" stroke-linejoin="round"/>
+          <path class="mouth-closed" d="M200 238 q -10 16 -24 6 M200 238 q 10 16 24 6" fill="none" stroke="#3B2414" stroke-width="4" stroke-linecap="round"/>
+          <g class="mouth-open"><path d="M200 237 v4" stroke="#3B2414" stroke-width="4"/><ellipse cx="200" cy="256" rx="17" ry="16" fill="#5A1E24" stroke="#3B2414" stroke-width="3.5"/><ellipse cx="200" cy="264" rx="10" ry="6" fill="#FF7E95"/></g>
+          <path d="M140 244 L 64 232 M140 254 L 62 260 M260 244 L 336 232 M260 254 L 338 260" stroke="#3B2414" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <!-- collar with C# tag -->
+        <path d="M122 282 Q 200 318 278 282" fill="none" stroke="#1D4ED8" stroke-width="14" stroke-linecap="round"/>
+        <circle cx="200" cy="312" r="19" fill="#FFD23F" stroke="#3B2414" stroke-width="3.5"/>
+        <text x="200" y="319" text-anchor="middle" font-family="JetBrains Mono,Consolas,monospace" font-weight="700" font-size="17" fill="#3B2414">C#</text>
+        <!-- thinking dots -->
+        <g class="dots"><circle cx="164" cy="-6" r="11" fill="#E8741E"/><circle cx="200" cy="-6" r="11" fill="#E8741E"/><circle cx="236" cy="-6" r="11" fill="#E8741E"/></g>
+      </svg>
+      <div class="status" aria-live="polite"><i></i><span id="statusTxt">Hazıram</span></div>
+    </section>
+
+    <section class="chat" id="chat" aria-live="polite" aria-label="Söhbət"></section>
+  </main>
+
+  <footer class="composer">
+    <button class="round" id="micBtn" title="Mikrofon (Boşluq)" aria-label="Mikrofon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+    </button>
+    <textarea id="q" rows="1" placeholder="Sualınızı yazın… məsələn: “Dəyişən nədir?”" aria-label="Sual"></textarea>
+    <button class="send" id="sendBtn"><svg viewBox="0 0 24 24" width="1.1em" height="1.1em" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg><span id="sendLbl">Göndər</span></button>
+    <div class="hint"><span><kbd>Enter</kbd> göndər</span><span><kbd>Shift</kbd>+<kbd>Enter</kbd> yeni sətir</span><span><kbd>Boşluq</kbd> mikrofon (mətn qutusu fokusda deyilsə)</span><span id="voiceInfo"></span></div>
+  </footer>
+  <div class="toast" id="toast" hidden role="status"></div>
+</div>
+
+<script>window.Prism = window.Prism || {}; window.Prism.manual = true;</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+<script>
+/* ====== AYARLAR — adı buradan dəyişin ====== */
+const ASSISTANT_NAME = "Mırmır";
+const MAX_TURNS = 20;           // yadda saxlanan son mesajların sayı
+/* =========================================== */
+
+const RULES = `Sən ${ASSISTANT_NAME} adlı sevimli cizgi pişiksən. C# proqramlaşdırma dərsində müəllimin köməkçisisən. Cavabların sinifdə proyektorda göstərilir və səsli oxunur.
+Qaydalar:
+- Həmişə Azərbaycan dilində yaz. Şagirdlər yeni başlayanlardır: sadə, mehriban və aydın dildə izah et.
+- İzah qısa olsun: 3-6 cümlə. Sonra lazım olsa kiçik C# kod nümunəsi ver (ən çox 15 sətir), mütləq \`\`\`csharp ... \`\`\` blokunda. Koddakı şərhlər Azərbaycanca olsun.
+- Terminləri həm azərbaycanca, həm ingiliscə de, məsələn: "dəyişən (variable)", "dövr (loop)", "metod (method)".
+- Bəzən (hər cavabda yox) kiçik pişik zarafatı et və ya "miyav" de, amma az.
+- Başlıq (#), cədvəl və uzun siyahılardan istifadə etmə. Mətn içində kod adlarını \`belə\` yaz.
+- Kod bloku səsli oxunmur, ona görə mətn kodsuz da başa düşülən olsun (məsələn "aşağıdakı nümunəyə baxın").
+- Sual C# və ya proqramlaşdırma ilə bağlı deyilsə, mehribanlıqla qısa cavab ver və dərsə qaytar.
+- Əvvəlki mesajları nəzərə al: "bir misal da göstər" deyilsə, eyni mövzuda yeni nümunə ver.`;
+
+const $ = s => document.querySelector(s);
+const app = $("#app"), chat = $("#chat"), q = $("#q"), sendBtn = $("#sendBtn"), micBtn = $("#micBtn");
+document.getElementById("catName").textContent = ASSISTANT_NAME;
+document.title = ASSISTANT_NAME + " C# Köməkçisi";
+
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem("mirmir:"+k); return v === null ? d : JSON.parse(v); }catch{ return d; } },
+  set(k, v){ try{ localStorage.setItem("mirmir:"+k, JSON.stringify(v)); }catch{} }
+};
+
+/* ---------- State ---------- */
+let turns = [];              // {role, content}
+let busy = false, ctl = null;
+let voiceOn = store.get("voiceOn", true);
+let scale = store.get("scale", 1);
+let talkTimer = null, speakingCount = 0;
+
+function setState(s){
+  app.classList.remove("state-idle","state-thinking","state-talking");
+  app.classList.add("state-"+s);
+  $("#statusTxt").textContent = s === "thinking" ? "Düşünürəm…" : s === "talking" ? "Danışıram…" : "Hazıram";
+}
+function toast(msg, ms=3800){
+  const t = $("#toast"); t.textContent = msg; t.hidden = false;
+  clearTimeout(toast._t); toast._t = setTimeout(()=>{ t.hidden = true; }, ms);
+}
+
+/* ---------- Font scale ---------- */
+function applyScale(){ document.documentElement.style.setProperty("--s", scale); store.set("scale", scale); }
+$("#bigger").onclick = ()=>{ scale = Math.min(1.8, +(scale+0.1).toFixed(2)); applyScale(); };
+$("#smaller").onclick = ()=>{ scale = Math.max(0.7, +(scale-0.1).toFixed(2)); applyScale(); };
+applyScale();
+
+/* ---------- Tier ---------- */
+const tierSel = $("#tierSel");
+tierSel.value = store.get("tier", "quick");
+tierSel.onchange = ()=> store.set("tier", tierSel.value);
+
+/* ---------- Markdown-lite rendering ---------- */
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function inline(s){
+  let h = esc(s);
+  h = h.replace(/`([^`\n]+)`/g, '<code class="inl">$1</code>');
+  h = h.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+  return h;
+}
+function textBlock(t){
+  t = t.trim(); if(!t) return "";
+  return t.split(/\n\s*\n/).map(par => {
+    const lines = par.split("\n");
+    if (lines.every(l => /^\s*([-*•]|\d+[.)])\s+/.test(l))) {
+      const ordered = /^\s*\d/.test(lines[0]);
+      const items = lines.map(l => "<li>"+inline(l.replace(/^\s*([-*•]|\d+[.)])\s+/, ""))+"</li>").join("");
+      return ordered ? "<ol>"+items+"</ol>" : "<ul>"+items+"</ul>";
+    }
+    return "<p>"+lines.map(l=>inline(l.replace(/^#+\s*/,""))).join("<br>")+"</p>";
+  }).join("");
+}
+function codeBlock(code, lang){
+  code = code.replace(/\n$/, "");
+  const isCs = !lang || /^(cs|csharp|c#)$/i.test(lang);
+  let html = esc(code);
+  if (isCs && window.Prism && Prism.languages && Prism.languages.csharp) {
+    try { html = Prism.highlight(code, Prism.languages.csharp, "csharp"); } catch {}
+  }
+  return `<div class="code"><span class="lang">${isCs ? "C#" : esc(lang)}</span><button class="copy" type="button">Kopyala</button><pre><code>${html}</code></pre></div>`;
+}
+function renderMD(src){
+  let out = "", last = 0, m;
+  const re = /```([\w#+-]*)[^\n]*\n?([\s\S]*?)(```|$)/g;
+  while ((m = re.exec(src))) {
+    out += textBlock(src.slice(last, m.index));
+    out += codeBlock(m[2], m[1]);
+    last = re.lastIndex;
+    if (last >= src.length) break;
+  }
+  out += textBlock(src.slice(last));
+  return out;
+}
+chat.addEventListener("click", e => {
+  const b = e.target.closest(".copy"); if(!b) return;
+  const code = b.parentElement.querySelector("code").innerText;
+  const done = ()=>{ b.textContent = "Kopyalandı"; setTimeout(()=> b.textContent = "Kopyala", 1500); };
+  try {
+    navigator.clipboard.writeText(code).then(done, ()=> selectCode(b));
+  } catch { selectCode(b); }
+});
+function selectCode(b){
+  const r = document.createRange(); r.selectNodeContents(b.parentElement.querySelector("code"));
+  const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Kod seçildi — Ctrl+C ilə kopyalayın");
+}
+
+/* ---------- Chat UI ---------- */
+function scrollDown(){ chat.scrollTop = chat.scrollHeight; }
+function addUser(text){
+  chat.querySelectorAll(".bubble").forEach(b => b.classList.add("old"));
+  const d = document.createElement("div"); d.className = "msg-user";
+  d.innerHTML = "<b>Sual</b>"; d.appendChild(document.createTextNode(text));
+  chat.appendChild(d); scrollDown();
+}
+function addBubble(html){
+  const d = document.createElement("div"); d.className = "bubble"; d.innerHTML = html;
+  chat.appendChild(d); scrollDown(); return d;
+}
+function greet(){
+  chat.innerHTML = "";
+  const g = addBubble(renderMD(
+`Salam, uşaqlar! Mən **${ASSISTANT_NAME}**am, C# dərsində sizin köməkçinizəm. Mənə proqramlaşdırma haqqında istənilən sualı verin, sadə dillə izah edəcəyəm. Məsələn, ilk proqramımız ekrana belə yazı çıxarır:
+
+\`\`\`csharp
+// Ekrana salam yazırıq
+Console.WriteLine("Miyav, dünya!");
+\`\`\``));
+  g.dataset.greeting = "1";
+  const chips = document.createElement("div"); chips.className = "chips";
+  ["Dəyişən (variable) nədir?", "if / else necə işləyir?", "for dövrünü izah et", "Metod (method) nədir?", "int və string fərqi"].forEach(t => {
+    const c = document.createElement("button"); c.className = "chip"; c.type = "button"; c.textContent = t;
+    c.onclick = () => ask(t);
+    chips.appendChild(c);
+  });
+  chat.appendChild(chips);
+}
+
+/* ---------- Claude (sample) ---------- */
+let sample = null;
+const samplePromise = (async () => {
+  try { sample = window.claude && window.claude.use ? await window.claude.use("sample") : null; } catch { sample = null; }
+  if (!sample) noClaude("Bu görünüşdə Claude bağlantısı yoxdur. Səhifəni claude.ai-da açın.");
+  return sample;
+})();
+function noClaude(msg){
+  sendBtn.disabled = true; q.disabled = true; micBtn.disabled = true;
+  q.placeholder = msg;
+}
+
+const ERR = {
+  not_granted: "Claude-dan istifadəyə icazə verilmədi. Səhifəni yeniləyib icazə verin.",
+  sampling_disabled: "Bu hesab üçün Claude əlçatan deyil.",
+  rate_limited: "Çox sual gəldi, bir az dincələk. Bir dəqiqədən sonra yenidən soruşun.",
+  session_expired: "Claude hesabına yenidən daxil olun.",
+  refused: "Bu suala cavab verə bilmirəm. Sualı başqa cür soruşun.",
+  prompt_too_large: "Söhbət çox uzandı. “Yeni mövzu” düyməsini basın.",
+  empty_completion: "Cavab boş gəldi. Sualı bir az dəyişib yenidən soruşun.",
+};
+
+async function ask(text){
+  text = (text || "").trim();
+  if (!text || busy) return;
+  const s = sample || await samplePromise;
+  if (!s) return;
+  stopSpeech();
+  q.value = ""; autoGrow();
+  addUser(text);
+  turns.push({ role: "user", content: text });
+  while (turns.length > MAX_TURNS) turns.splice(0, 2);
+  if (turns[0] && turns[0].role !== "user") turns.shift();
+
+  const bubble = addBubble(`<span class="dim">${esc(ASSISTANT_NAME)} düşünür…</span>`);
+  busy = true; setBusyUI(true); setState("thinking");
+  ctl = new AbortController();
+  let gotText = false;
+  try {
+    const res = await s([{ role: "user", content: RULES }, ...turns], {
+      cache: false, signal: ctl.signal, modelTier: tierSel.value,
+      onText: ({ text: t }) => {
+        if (!gotText) { gotText = true; if (!voiceOn) setState("talking"); else setState("thinking"); }
+        bubble.innerHTML = renderMD(t); scrollDown();
+      }
+    });
+    bubble.innerHTML = renderMD(res.text); scrollDown();
+    if (res.truncated) bubble.insertAdjacentHTML("beforeend", `<p class="dim">(Cavab yarımçıq qaldı — daha qısa soruşun.)</p>`);
+    turns.push({ role: "assistant", content: res.text });
+    finishAnswer(res.text);
+  } catch (e) {
+    const code = e && e.code;
+    if (code === "cancelled") {
+      if (e.text) { bubble.innerHTML = renderMD(e.text); turns.push({ role: "assistant", content: e.text }); }
+      else { bubble.innerHTML = `<span class="dim">Dayandırıldı.</span>`; turns.pop(); }
+      setState("idle");
+    } else {
+      turns.pop();
+      if (code === "not_granted" || code === "sampling_disabled" || code === "not_declared" || code === "capability_disabled") noClaude(ERR[code] || "Claude əlçatan deyil.");
+      const keep = code !== "refused" && e && e.text ? renderMD(e.text) : "";
+      bubble.innerHTML = keep + `<p class="err">${esc(ERR[code] || "Bağlantıda problem oldu. Bir az sonra yenidən soruşun.")}</p>`;
+      setState("idle");
+    }
+  } finally {
+    busy = false; ctl = null; setBusyUI(false);
+  }
+}
+function setBusyUI(b){
+  sendBtn.classList.toggle("stop", b);
+  $("#sendLbl").textContent = b ? "Dayan" : "Göndər";
+}
+sendBtn.onclick = () => { if (busy) { ctl && ctl.abort(); } else ask(q.value); };
+
+/* ---------- Speech synthesis ---------- */
+const synth = window.speechSynthesis || null;
+const voiceSel = $("#voiceSel");
+let voices = [];
+function rankVoice(v){
+  const l = (v.lang||"").toLowerCase(), n = v.name.toLowerCase();
+  if (l.startsWith("az")) return (/banu|babek/.test(n) ? 0 : 1);
+  if (l.startsWith("tr")) return 2;
+  return 3;
+}
+function loadVoices(){
+  if (!synth) return;
+  voices = synth.getVoices().slice().sort((a,b)=> rankVoice(a)-rankVoice(b) || a.name.localeCompare(b.name));
+  voiceSel.hidden = !voices.length;
+  if (!voices.length) return;
+  const saved = store.get("voice", null);
+  voiceSel.innerHTML = voices.map((v,i)=> `<option value="${i}">${esc(v.name.replace(/^Microsoft\s+/,"").replace(/\s+Online.*$/,""))} (${esc(v.lang)})</option>`).join("");
+  let idx = saved ? voices.findIndex(v => v.name === saved) : -1;
+  if (idx < 0) idx = 0;
+  voiceSel.value = String(idx);
+  updateVoiceInfo();
+}
+function currentVoice(){ return voices[+voiceSel.value] || null; }
+function updateVoiceInfo(){
+  const v = currentVoice(); const info = $("#voiceInfo");
+  if (!synth) { info.textContent = "Bu brauzer səsli oxunu dəstəkləmir."; return; }
+  if (!v) { info.textContent = ""; return; }
+  info.textContent = (v.lang||"").toLowerCase().startsWith("az") ? "" :
+    "Azərbaycan səsi tapılmadı — Edge brauzerində “Banu”/“Babek” səsləri var.";
+}
+voiceSel.onchange = ()=>{ const v = currentVoice(); if (v) store.set("voice", v.name); updateVoiceInfo(); };
+if (synth) { loadVoices(); synth.onvoiceschanged = loadVoices; } else { voiceSel.hidden = true; updateVoiceInfo(); }
+
+function speechText(md){
+  return md
+    .replace(/```[\s\S]*?(```|$)/g, " ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\*\*|__|^#+\s*/gm, "")
+    .replace(/^\s*[-*•]\s+/gm, "")
+    .replace(/C#/g, "Si-şarp")
+    .replace(/[()]/g, ", ")
+    .replace(/\s+/g, " ").trim();
+}
+function chunks(t){
+  const parts = t.split(/(?<=[.!?…:])\s+/); const out = []; let cur = "";
+  for (const p of parts) { if ((cur + " " + p).length > 220 && cur) { out.push(cur); cur = p; } else cur = cur ? cur + " " + p : p; }
+  if (cur) out.push(cur); return out;
+}
+function speak(md){
+  const text = speechText(md);
+  if (!synth || !voiceOn || !text) return false;
+  synth.cancel();
+  const v = currentVoice(); const list = chunks(text);
+  speakingCount = list.length;
+  list.forEach(part => {
+    const u = new SpeechSynthesisUtterance(part);
+    if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "az-AZ";
+    u.rate = 0.95;
+    u.onstart = () => setState("talking");
+    const end = () => { speakingCount--; if (speakingCount <= 0 && !busy) setState("idle"); };
+    u.onend = end; u.onerror = end;
+    synth.speak(u);
+  });
+  return true;
+}
+function stopSpeech(){ if (synth) synth.cancel(); speakingCount = 0; clearTimeout(talkTimer); if (!busy) setState("idle"); }
+function finishAnswer(md){
+  clearTimeout(talkTimer);
+  if (speak(md)) {
+    setState("talking");
+    // ehtiyat: hadisələr gəlməsə animasiya dayansın
+    talkTimer = setTimeout(()=>{ if (synth && !synth.speaking) setState("idle"); }, 4000);
+  } else {
+    setState("talking");
+    const ms = Math.min(6000, Math.max(1500, speechText(md).length * 35));
+    talkTimer = setTimeout(()=> setState("idle"), ms);
+  }
+}
+function renderVoiceBtn(){
+  const b = $("#voiceBtn"); b.setAttribute("aria-pressed", String(voiceOn));
+  $("#voiceLbl").textContent = voiceOn ? "Səs: açıq" : "Səs: bağlı";
+  $("#waveA").style.display = $("#waveB").style.display = voiceOn ? "" : "none";
+}
+$("#voiceBtn").onclick = ()=>{ voiceOn = !voiceOn; store.set("voiceOn", voiceOn); renderVoiceBtn(); if (!voiceOn) stopSpeech(); };
+renderVoiceBtn();
+
+/* ---------- Speech recognition (optional) ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, listening = false, micDead = false, heard = "";
+function micUnavailable(msg){
+  micDead = true; micBtn.disabled = true; micBtn.classList.remove("listening");
+  micBtn.title = msg; if (msg) toast(msg, 5000);
+}
+if (!SR) { micDead = true; micBtn.disabled = true; micBtn.title = "Bu brauzer səs tanımanı dəstəkləmir — sualı yazın."; }
+else {
+  try {
+    rec = new SR(); rec.lang = "az-AZ"; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+    rec.onresult = e => {
+      let t = ""; for (const r of e.results) t += r[0].transcript;
+      heard = t; q.value = t; autoGrow();
+    };
+    rec.onerror = e => {
+      listening = false; micBtn.classList.remove("listening");
+      if (e.error === "not-allowed" || e.error === "service-not-allowed" || e.error === "audio-capture")
+        micUnavailable("Mikrofon bu pəncərədə açıla bilmir. Sualı yazın.");
+      else if (e.error === "no-speech") toast("Səs eşidilmədi. Yenidən cəhd edin.");
+      else if (e.error === "language-not-supported") micUnavailable("Brauzer az-AZ səs tanımanı dəstəkləmir. Sualı yazın.");
+      else if (e.error !== "aborted") toast("Mikrofon xətası. Sualı yazın.");
+    };
+    rec.onend = () => {
+      const was = listening; listening = false; micBtn.classList.remove("listening");
+      if (was && heard.trim()) ask(heard);
+      heard = "";
+    };
+  } catch { micUnavailable(""); micBtn.title = "Mikrofon əlçatan deyil — sualı yazın."; }
+}
+function toggleMic(){
+  if (micDead || !rec || busy) return;
+  if (listening) { try { rec.stop(); } catch {} return; }
+  stopSpeech(); heard = "";
+  try { rec.start(); listening = true; micBtn.classList.add("listening"); }
+  catch { micUnavailable("Mikrofon açılmadı. Sualı yazın."); }
+}
+micBtn.onclick = toggleMic;
+
+/* ---------- Input & keys ---------- */
+function autoGrow(){ q.style.height = "auto"; q.style.height = Math.min(q.scrollHeight, 200) + "px"; }
+q.addEventListener("input", autoGrow);
+q.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask(q.value); }
+});
+document.addEventListener("keydown", e => {
+  if (e.code !== "Space" && e.key !== " ") return;
+  const t = e.target;
+  if (t && (t.tagName === "TEXTAREA" || t.tagName === "INPUT" || t.tagName === "SELECT" || t.isContentEditable)) return;
+  e.preventDefault(); toggleMic();
+});
+
+/* ---------- Header buttons ---------- */
+$("#newTopic").onclick = ()=>{
+  if (ctl) ctl.abort();
+  stopSpeech(); turns = []; greet(); setState("idle"); toast("Yeni mövzu — tarixçə təmizləndi");
+};
+$("#fsBtn").onclick = async ()=>{
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch { toast("Tam ekran açılmadı. Brauzerdə F11 düyməsini basın."); }
+};
+
+greet();
+setState("idle");
+</script>
+
+</body></html>
